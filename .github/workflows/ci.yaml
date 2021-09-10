@@ -1,0 +1,119 @@
+name: Terraform Continuous Integration By Official
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  terraform-ci:
+    name: Terraform CI
+    strategy:
+      matrix:
+        env: [mintak]
+
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./environments/${{ matrix.env }}
+
+    steps:
+      - name: Checkout code
+        id: checkout
+        uses: actions/checkout@v2
+
+      - name: Read dotenv filter
+        id: read-versions
+        uses: falti/dotenv-action@master
+        with:
+          path: .github/workflow/.versions
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v0.2
+        with:
+          project_id: ${{ steps.read-versions.outputs.gcloud }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
+
+      - name: Setup terraform
+        uses: hashicorp/setup-terraform@v1.3.2
+        with:
+          terraform_version: ${{ steps.read-versions.outputs.terraform }}
+
+      - name: Terraform format
+        id: fmt
+        run: terraform fmt
+        continue-on-error: true
+
+      - name: Terraform init
+        id: init
+        run: terraform init
+
+      - name: Terraform validate
+        id: validate
+        run: terraform validate -no-color
+        continue-on-error: true
+
+      - name: Terraform plan
+        id: plan
+        run: terraform plan -no-color
+        continue-on-error: true
+
+      - uses: actions/github-script@4.1.0
+        if: github.event_name == 'pull_request'
+        with:
+          github-token: ${{ secrets.github_token }}
+          script: |
+            const output = `## \`${{ matrix.env }}\`
+            #### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+            #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+            #### Terraform Validation 🤖${{ steps.validate.outputs.stdout }}
+            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+
+            <details><summary>Show Plan</summary>
+
+            \`\`\`terraform\n${{ steps.plan.outputs.stdout }}\`\`\`
+
+            </details>
+
+            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Workflow: \`${{ github.workflow }}\`*`;
+
+            github.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+
+      - name: TFLint
+        uses: reviewdog/action-tflint@v1.13
+        with:
+          github_token: ${{ secrets.github_token }}
+          working_directory: ./environments/${{ matrix.env }}
+          tflint_version: ${{ steps.read-versions.outputs.tflint }}
+          reporter: github-pr-review
+          filter_mode: file
+          fail_on_error: true
+
+      - name: TF Security
+        uses: reviewdog/action-tfsec@v1.11
+        with:
+          github_token: ${{ secrets.github_token }}
+          working_directory: ./environments/${{ matrix.env }}
+          tfsec_version: ${{ steps.read-versions.outputs.tfsec }}
+          reporter: github-pr-review
+          filter_mode: file
+          fail_on_error: true
+
+      - name: Run Checkov action
+        id: checkov
+        uses: bridgecrewio/checkov-action@v12.864.0
+        with:
+          directory: ./environments/${{ matrix.env }}
+          # skip_check: CKV_AWS_8
+          quiet: true # optional: display only failed checks
+          framework: terraform # optional: run only on a specific infrastructure {cloudformation,terraform,kubernetes,all}
+          log_level: DEBUG
