@@ -29,7 +29,7 @@ jobs:
         id: read-versions
         uses: falti/dotenv-action@master
         with:
-          path: .github/workflow/.versions
+          path: .github/workflows/.versions
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v0.2
