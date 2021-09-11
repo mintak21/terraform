@@ -75,5 +75,5 @@ jobs:
         uses: voxmedia/github-action-slack-notify-build@v1.5.0
         with:
           channel: notifications
-          status: ${{ steps.apply.outcome }}
+          status: "${{ steps.apply.outcome }}(actor is ${{ github.actor }})"
           color: ${{ env.color }}
