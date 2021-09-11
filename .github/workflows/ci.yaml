@@ -1,4 +1,4 @@
-name: Terraform Continuous Integration By Official
+name: Terraform Continuous Integration
 
 on:
   push:

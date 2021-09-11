@@ -1,0 +1,50 @@
+name: Terraform Continuous Deploy
+
+on:
+  workflow_dispatch:
+
+jobs:
+  terraform-apply:
+    name: Terraform CD
+    environment:
+      name: cd
+    strategy:
+      matrix:
+        env: [mintak]
+
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./environments/${{ matrix.env }}
+
+    steps:
+      - name: Checkout code
+        id: checkout
+        uses: actions/checkout@v2
+
+      - name: Read dotenv filter
+        id: read-versions
+        uses: falti/dotenv-action@master
+        with:
+          path: .github/workflows/.versions
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v0.2
+        with:
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
+
+      - name: Setup terraform
+        uses: hashicorp/setup-terraform@v1.3.2
+        with:
+          terraform_version: ${{ steps.read-versions.outputs.terraform }}
+
+      - name: Terraform init
+        id: init
+        run: terraform init
+
+      - name: Terraform apply
+        id: plan
+        run: terraform apply --auto-approve
