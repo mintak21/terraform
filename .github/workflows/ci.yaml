@@ -117,3 +117,9 @@ jobs:
           quiet: true # optional: display only failed checks
           framework: terraform # optional: run only on a specific infrastructure {cloudformation,terraform,kubernetes,all}
           log_level: DEBUG
+
+      - name: Reassessment result
+        id: reassessment
+        if: steps.fmt.outcome != 'success' || steps.validate.outcome != 'success' || steps.plan.outcome != 'success'
+        run: |
+          exit 1
