@@ -46,5 +46,34 @@ jobs:
         run: terraform init
 
       - name: Terraform apply
-        id: plan
+        id: apply
         run: terraform apply --auto-approve
+
+      - name: Set status success
+        id: status-success
+        if: steps.apply.outcome == 'success'
+        run: echo "color=good" >> $GITHUB_ENV
+
+      - name: Set status failure
+        id: status-failure
+        if: failure()
+        run: echo "color=danger" >> $GITHUB_ENV
+
+      # - name: Notify slack
+      #   id: notify
+      #   env:
+      #     SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+      #     CHANNEL_ID: CV0H4LM3N
+      #   uses: pullreminders/slack-action@master
+      #   with:
+      #     args: '{\"channel\":\"${{ env.CHANNEL_ID }}\",\"text\":\"Hello world\"}'
+
+      - name: Notify slack success
+        if: always()
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        uses: voxmedia/github-action-slack-notify-build@v1.5.0
+        with:
+          channel: notifications
+          status: ${{ steps.apply.outcome }}
+          color: ${{ env.color }}
