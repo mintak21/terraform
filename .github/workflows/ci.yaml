@@ -99,7 +99,7 @@ jobs:
           fail_on_error: true
 
       - name: TF Security
-        uses: reviewdog/action-tfsec@v1.11
+        uses: reviewdog/action-tfsec@v1.12.1
         with:
           github_token: ${{ secrets.github_token }}
           working_directory: ./environments/${{ matrix.env }}
