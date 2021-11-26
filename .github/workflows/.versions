@@ -1,4 +1,4 @@
 terraform=1.0.９
 tflint=0.33.1
-tfsec=0.58.9
+tfsec=0.60.1
 gcloud=363.0.0
