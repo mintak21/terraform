@@ -42,8 +42,8 @@ jobs:
           workload_identity_provider: "projects/917389335203/locations/global/workloadIdentityPools/github/providers/github-provider"
           service_account: "github-actions@mintak-h83y.iam.gserviceaccount.com"
 
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v0.3
+      # - name: Set up Cloud SDK
+      #   uses: google-github-actions/setup-gcloud@v0.3
 
       - name: Setup terraform
         uses: hashicorp/setup-terraform@v1.3.2
