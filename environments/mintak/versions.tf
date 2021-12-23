@@ -1,6 +1,6 @@
 terraform {
   backend "gcs" {
-    bucket = "mintak-terraform-state"
+    bucket = "mintak-tfstate"
     prefix = "terraform"
   }
 
