@@ -16,9 +16,8 @@ jobs:
     runs-on: ubuntu-latest
     # See. https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#permissions
     permissions:
-      contents: "read"
-      id-token: "write"
-      pull requests: write
+      id-token: write
+      pull-requests: write
 
     defaults:
       run:
