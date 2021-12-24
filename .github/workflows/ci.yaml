@@ -48,10 +48,6 @@ jobs:
         with:
           terraform_version: ${{ steps.read-versions.outputs.terraform }}
 
-      - name: Debug
-        if: ${{ always() }}
-        uses: mxschmitt/action-tmate@v3
-
       - name: Terraform format
         id: fmt
         run: terraform fmt
