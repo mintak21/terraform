@@ -43,13 +43,14 @@ jobs:
           service_account: "github-actions@mintak-h83y.iam.gserviceaccount.com"
           access_token_lifetime: "600s"
 
-      # - name: Set up Cloud SDK
-      #   uses: google-github-actions/setup-gcloud@v0.3
-
       - name: Setup terraform
         uses: hashicorp/setup-terraform@v1.3.2
         with:
           terraform_version: ${{ steps.read-versions.outputs.terraform }}
+
+      - name: Debug
+        if: ${{ always() }}
+        uses: mxschmitt/action-tmate@v3
 
       - name: Terraform format
         id: fmt
