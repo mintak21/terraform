@@ -94,7 +94,7 @@ jobs:
             })
 
       - name: TFLint
-        uses: reviewdog/action-tflint@v1.13
+        uses: reviewdog/action-tflint@v1.14
         with:
           github_token: ${{ secrets.github_token }}
           working_directory: ./environments/${{ matrix.env }}
