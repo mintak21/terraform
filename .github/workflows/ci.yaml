@@ -67,7 +67,7 @@ jobs:
         run: terraform plan -lock=false
         continue-on-error: true
 
-      - uses: actions/github-script@v4.1
+      - uses: actions/github-script@v5.1.0
         if: github.event_name == 'pull_request'
         with:
           github-token: ${{ secrets.github_token }}
