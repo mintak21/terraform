@@ -7,6 +7,9 @@ inputs:
   service_account:
     description: Service Account for Authorize GCP
     required: true
+  directory:
+    description: init directory
+    required: true
 
 runs:
   using: "composite"
@@ -33,3 +36,4 @@ runs:
       id: init
       run: terraform init
       shell: bash
+      working-directory: ${{ inputs.directory }}

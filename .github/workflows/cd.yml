@@ -12,12 +12,7 @@ jobs:
       matrix:
         env: [mintak]
 
-    runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        shell: bash
-        working-directory: ./environments/${{ matrix.env }}
+    runs-on: ubuntu-20.04
 
     steps:
       - name: setup
@@ -25,6 +20,7 @@ jobs:
         with:
           workload_identity_provider: "projects/917389335203/locations/global/workloadIdentityPools/github/providers/github-provider"
           service_account: "github-actions@mintak-h83y.iam.gserviceaccount.com"
+          directory: ./environments/${{ matrix.env }}
       # - name: Checkout code
       #   id: checkout
       #   uses: actions/checkout@v2
@@ -54,6 +50,7 @@ jobs:
       - name: Terraform apply
         id: apply
         run: terraform apply --auto-approve
+        working-directory: ./environments/${{ matrix.env }}
 
       - name: Set status success
         id: status-success

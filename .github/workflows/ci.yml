@@ -34,6 +34,7 @@ jobs:
         with:
           workload_identity_provider: "projects/917389335203/locations/global/workloadIdentityPools/github/providers/github-provider"
           service_account: "github-actions@mintak-h83y.iam.gserviceaccount.com"
+          directory: ./environments/${{ matrix.env }}
 
       # - name: Checkout code
       #   id: checkout
@@ -60,6 +61,7 @@ jobs:
       - name: Terraform format
         id: fmt
         run: terraform fmt
+        working-directory: ./environments/${{ matrix.env }}
 
       # - name: Terraform init
       #   id: init
@@ -68,10 +70,12 @@ jobs:
       - name: Terraform validate
         id: validate
         run: terraform validate
+        working-directory: ./environments/${{ matrix.env }}
 
       - name: Terraform plan
         id: plan
         run: terraform plan -lock=false
+        working-directory: ./environments/${{ matrix.env }}
 
       - name: Post Plan
         if: always() && github.event_name == 'pull_request' && (steps.plan.outcome == 'success' || steps.plan.outcome == 'failure')
@@ -130,7 +134,7 @@ jobs:
       #   run: terraform init
 
       - name: TFLint
-        uses: reviewdog/action-tflint@v1.14
+        uses: reviewdog/action-tflint@v1.14.0
         with:
           github_token: ${{ secrets.github_token }}
           working_directory: ./environments/${{ matrix.env }}
@@ -140,7 +144,7 @@ jobs:
           fail_on_error: true
 
       - name: TF Security
-        uses: reviewdog/action-tfsec@v1.13
+        uses: reviewdog/action-tfsec@v1.13.0
         with:
           github_token: ${{ secrets.github_token }}
           working_directory: ./environments/${{ matrix.env }}
