@@ -33,3 +33,8 @@ resource "google_billing_budget" "this" {
 data "google_billing_account" "account" {
   billing_account = "01ED0E-0EF6B9-F55E96"
 }
+
+resource "google_service_account" "service_account" {
+  account_id   = "service-account-id"
+  display_name = "Service Account"
+}
