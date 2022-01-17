@@ -1,0 +1,39 @@
+name: Set up Terraform
+description: checkout / set up terraform and authorize gcp
+inputs:
+  workload_identity_provider:
+    description: Workload Identity Provider for Authorize GCP
+    required: true
+  service_account:
+    description: Service Account for Authorize GCP
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout code
+      id: checkout
+      uses: actions/checkout@v2
+
+    - name: Read dotenv filter
+      id: read-versions
+      uses: falti/dotenv-action@master
+      with:
+        path: .github/workflows/.versions
+
+    - name: Setup terraform
+      uses: hashicorp/setup-terraform@v1.3.2
+      with:
+        terraform_version: ${{ steps.read-versions.outputs.terraform }}
+
+    - name: Authenticate google cloud
+      id: auth
+      uses: google-github-actions/auth@v0.4.4
+      with:
+        workload_identity_provider: ${{ inputs.workload_identity_provider }}
+        service_account: ${{ inputs.service_account }}
+
+    - name: Terraform init
+      id: init
+      run: terraform init
+      shell: bash
