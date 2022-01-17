@@ -1,0 +1,157 @@
+name: Terraform Continuous Integration
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  basic:
+    name: fmt/validate/check
+    strategy:
+      matrix:
+        env: [mintak]
+
+    runs-on: ubuntu-20.04
+    # See. https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#permissions
+    permissions:
+      id-token: write
+      pull-requests: write
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./environments/${{ matrix.env }}
+
+    steps:
+      - name: setup
+        uses: ./.github/actions/setup
+        with:
+          workload_identity_provider: "projects/917389335203/locations/global/workloadIdentityPools/github/providers/github-provider"
+          service_account: "github-actions@mintak-h83y.iam.gserviceaccount.com"
+
+      # - name: Checkout code
+      #   id: checkout
+      #   uses: actions/checkout@v2
+
+      # - name: Read dotenv filter
+      #   id: read-versions
+      #   uses: falti/dotenv-action@master
+      #   with:
+      #     path: .github/workflows/.versions
+
+      # - name: Authenticate google cloud
+      #   id: auth
+      #   uses: google-github-actions/auth@v0.4.4
+      #   with:
+      #     workload_identity_provider: "projects/917389335203/locations/global/workloadIdentityPools/github/providers/github-provider"
+      #     service_account: "github-actions@mintak-h83y.iam.gserviceaccount.com"
+
+      # - name: Setup terraform
+      #   uses: hashicorp/setup-terraform@v1.3.2
+      #   with:
+      #     terraform_version: ${{ steps.read-versions.outputs.terraform }}
+
+      - name: Terraform format
+        id: fmt
+        run: terraform fmt
+
+      # - name: Terraform init
+      #   id: init
+      #   run: terraform init
+
+      - name: Terraform validate
+        id: validate
+        run: terraform validate
+
+      - name: Terraform plan
+        id: plan
+        run: terraform plan -lock=false
+
+      - name: Post Plan
+        if: always() && github.event_name == 'pull_request' && (steps.plan.outcome == 'success' || steps.plan.outcome == 'failure')
+        uses: robburger/terraform-pr-commenter@v1
+        with:
+          commenter_type: plan
+          commenter_input: ${{ format('{0}{1}', steps.plan.outputs.stdout, steps.plan.outputs.stderr) }}
+          commenter_exitcode: ${{ steps.plan.outputs.exitcode }}
+
+  security:
+    name: tfsec / checkov
+    strategy:
+      matrix:
+        env: [mintak]
+
+    runs-on: ubuntu-20.04
+    # See. https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#permissions
+    permissions:
+      id-token: write
+      pull-requests: write
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./environments/${{ matrix.env }}
+
+    steps:
+      - name: setup
+        uses: ./.github/actions/setup
+        with:
+          workload_identity_provider: "projects/917389335203/locations/global/workloadIdentityPools/github/providers/github-provider"
+          service_account: "github-actions@mintak-h83y.iam.gserviceaccount.com"
+      # - name: Checkout code
+      #   id: checkout
+      #   uses: actions/checkout@v2
+
+      # - name: Read dotenv filter
+      #   id: read-versions
+      #   uses: falti/dotenv-action@master
+      #   with:
+      #     path: .github/workflows/.versions
+
+      # - name: Authenticate google cloud
+      #   id: auth
+      #   uses: google-github-actions/auth@v0.4.4
+      #   with:
+      #     workload_identity_provider: "projects/917389335203/locations/global/workloadIdentityPools/github/providers/github-provider"
+      #     service_account: "github-actions@mintak-h83y.iam.gserviceaccount.com"
+
+      # - name: Setup terraform
+      #   uses: hashicorp/setup-terraform@v1.3.2
+      #   with:
+      #     terraform_version: ${{ steps.read-versions.outputs.terraform }}
+
+      # - name: Terraform init
+      #   id: init
+      #   run: terraform init
+
+      - name: TFLint
+        uses: reviewdog/action-tflint@v1.14
+        with:
+          github_token: ${{ secrets.github_token }}
+          working_directory: ./environments/${{ matrix.env }}
+          tflint_version: v${{ steps.read-versions.outputs.tflint }}
+          reporter: github-pr-review
+          filter_mode: file
+          fail_on_error: true
+
+      - name: TF Security
+        uses: reviewdog/action-tfsec@v1.13
+        with:
+          github_token: ${{ secrets.github_token }}
+          working_directory: ./environments/${{ matrix.env }}
+          tfsec_version: v${{ steps.read-versions.outputs.tfsec }}
+          reporter: github-pr-review
+          filter_mode: file
+          fail_on_error: true
+
+      - name: Run Checkov action
+        id: checkov
+        uses: bridgecrewio/checkov-action@v12.1158.0
+        with:
+          directory: ./environments/${{ matrix.env }}
+          # skip_check: CKV_AWS_8
+          quiet: true # optional: display only failed checks
+          framework: terraform # optional: run only on a specific infrastructure {cloudformation,terraform,kubernetes,all}
+          log_level: DEBUG
