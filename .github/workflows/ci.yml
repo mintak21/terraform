@@ -36,36 +36,10 @@ jobs:
           service_account: "github-actions@mintak-h83y.iam.gserviceaccount.com"
           directory: ./environments/${{ matrix.env }}
 
-      # - name: Checkout code
-      #   id: checkout
-      #   uses: actions/checkout@v2
-
-      # - name: Read dotenv filter
-      #   id: read-versions
-      #   uses: falti/dotenv-action@master
-      #   with:
-      #     path: .github/workflows/.versions
-
-      # - name: Authenticate google cloud
-      #   id: auth
-      #   uses: google-github-actions/auth@v0.4.4
-      #   with:
-      #     workload_identity_provider: "projects/917389335203/locations/global/workloadIdentityPools/github/providers/github-provider"
-      #     service_account: "github-actions@mintak-h83y.iam.gserviceaccount.com"
-
-      # - name: Setup terraform
-      #   uses: hashicorp/setup-terraform@v1.3.2
-      #   with:
-      #     terraform_version: ${{ steps.read-versions.outputs.terraform }}
-
       - name: Terraform format
         id: fmt
         run: terraform fmt
         working-directory: ./environments/${{ matrix.env }}
-
-      # - name: Terraform init
-      #   id: init
-      #   run: terraform init
 
       - name: Terraform validate
         id: validate
@@ -140,7 +114,7 @@ jobs:
         with:
           github_token: ${{ secrets.github_token }}
           working_directory: ./environments/${{ matrix.env }}
-          tflint_version: v${{ steps.setup.outputs.tflint }}
+          tflint_version: v${{ steps.setup.outputs.tflint_version }}
           reporter: github-pr-review
           filter_mode: file
           fail_on_error: true
@@ -150,7 +124,7 @@ jobs:
         with:
           github_token: ${{ secrets.github_token }}
           working_directory: ./environments/${{ matrix.env }}
-          tfsec_version: v${{ steps.setup.outputs.tfsec }}
+          tfsec_version: v${{ steps.setup.outputs.tfsec_version }}
           reporter: github-pr-review
           filter_mode: file
           fail_on_error: true
