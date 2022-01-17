@@ -23,9 +23,10 @@ runs:
   steps:
     - name: Read dotenv filter
       id: read-versions
-      uses: falti/dotenv-action@master
+      uses: falti/dotenv-action@3531b0d7feea718f030b48fdb628a3d2d1bf005d
       with:
         path: .github/workflows/.versions
+        log-variables: true
 
     - name: Setup terraform
       uses: hashicorp/setup-terraform@v1.3.2
