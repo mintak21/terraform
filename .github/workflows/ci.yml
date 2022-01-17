@@ -138,7 +138,7 @@ jobs:
         with:
           github_token: ${{ secrets.github_token }}
           working_directory: ./environments/${{ matrix.env }}
-          tflint_version: v${{ steps.read-versions.outputs.tflint }}
+          tflint_version: v${{ steps.setup.outputs.tflint }}
           reporter: github-pr-review
           filter_mode: file
           fail_on_error: true
@@ -148,7 +148,7 @@ jobs:
         with:
           github_token: ${{ secrets.github_token }}
           working_directory: ./environments/${{ matrix.env }}
-          tfsec_version: v${{ steps.read-versions.outputs.tfsec }}
+          tfsec_version: v${{ steps.setup.outputs.tfsec }}
           reporter: github-pr-review
           filter_mode: file
           fail_on_error: true

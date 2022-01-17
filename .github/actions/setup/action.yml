@@ -10,6 +10,13 @@ inputs:
   directory:
     description: init directory
     required: true
+outputs:
+  tflint_version:
+    description: tflint version
+    value: ${{ steps.read-versions.outputs.tflint }}
+  tfsec_version:
+    description: tflint version
+    value: ${{ steps.read-versions.outputs.tfsec }}
 
 runs:
   using: "composite"
