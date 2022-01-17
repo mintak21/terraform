@@ -13,16 +13,16 @@ inputs:
 outputs:
   tflint_version:
     description: tflint version
-    value: ${{ steps.read-versions.outputs.tflint }}
+    value: ${{ steps.version.outputs.tflint }}
   tfsec_version:
     description: tflint version
-    value: ${{ steps.read-versions.outputs.tfsec }}
+    value: ${{ steps.version.outputs.tfsec }}
 
 runs:
   using: "composite"
   steps:
     - name: Read dotenv filter
-      id: read-versions
+      id: version
       uses: falti/dotenv-action@3531b0d7feea718f030b48fdb628a3d2d1bf005d
       with:
         path: .github/workflows/.versions
@@ -31,7 +31,7 @@ runs:
     - name: Setup terraform
       uses: hashicorp/setup-terraform@v1.3.2
       with:
-        terraform_version: ${{ steps.read-versions.outputs.terraform }}
+        terraform_version: ${{ steps.version.outputs.terraform }}
 
     - name: Authenticate google cloud
       id: auth
