@@ -31,7 +31,7 @@ jobs:
     steps:
       - name: Checkout code
         id: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
 
       - name: setup
         uses: ./.github/actions/setup
@@ -103,7 +103,7 @@ jobs:
 
       - name: TFLint
         id: lint
-        uses: reviewdog/action-tflint@v1.14.0
+        uses: reviewdog/action-tflint@fe74d2eb0a4713a048c64dc6b2370d3655508cb7 # v1.14.0
         with:
           github_token: ${{ secrets.github_token }}
           working_directory: ./environments/${{ matrix.env }}
@@ -114,7 +114,7 @@ jobs:
 
       - name: TF Security
         id: sec
-        uses: reviewdog/action-tfsec@v1.13.0
+        uses: reviewdog/action-tfsec@d369687c2fd9373b8469e34602a714b24b78b0d3 # v1.13.0
         with:
           github_token: ${{ secrets.github_token }}
           working_directory: ./environments/${{ matrix.env }}
@@ -125,7 +125,7 @@ jobs:
 
       - name: Run Checkov action
         id: checkov
-        uses: bridgecrewio/checkov-action@v12.1158.0
+        uses: bridgecrewio/checkov-action@2c1d391f5ddc1df7d7a0970c4e273c208963401b # v12.1158.0
         with:
           directory: ./environments/${{ matrix.env }}
           # skip_check: CKV_AWS_8
