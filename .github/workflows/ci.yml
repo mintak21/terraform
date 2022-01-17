@@ -25,6 +25,10 @@ jobs:
         working-directory: ./environments/${{ matrix.env }}
 
     steps:
+      - name: Checkout code
+        id: checkout
+        uses: actions/checkout@v2
+
       - name: setup
         uses: ./.github/actions/setup
         with:
@@ -89,12 +93,11 @@ jobs:
       id-token: write
       pull-requests: write
 
-    defaults:
-      run:
-        shell: bash
-        working-directory: ./environments/${{ matrix.env }}
-
     steps:
+      - name: Checkout code
+        id: checkout
+        uses: actions/checkout@v2
+
       - name: setup
         uses: ./.github/actions/setup
         with:

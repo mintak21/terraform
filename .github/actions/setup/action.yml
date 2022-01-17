@@ -1,5 +1,5 @@
 name: Set up Terraform
-description: checkout / set up terraform and authorize gcp
+description: set up terraform and authorize gcp
 inputs:
   workload_identity_provider:
     description: Workload Identity Provider for Authorize GCP
@@ -11,10 +11,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Checkout code
-      id: checkout
-      uses: actions/checkout@v2
-
     - name: Read dotenv filter
       id: read-versions
       uses: falti/dotenv-action@master
