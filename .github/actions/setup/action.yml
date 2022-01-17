@@ -1,0 +1,47 @@
+name: Set up Terraform
+description: set up terraform and authorize gcp
+inputs:
+  workload_identity_provider:
+    description: Workload Identity Provider for Authorize GCP
+    required: true
+  service_account:
+    description: Service Account for Authorize GCP
+    required: true
+  directory:
+    description: init directory
+    required: true
+outputs:
+  tflint_version:
+    description: tflint version
+    value: ${{ steps.version.outputs.tflint }}
+  tfsec_version:
+    description: tflint version
+    value: ${{ steps.version.outputs.tfsec }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Read dotenv filter
+      id: version
+      uses: falti/dotenv-action@3531b0d7feea718f030b48fdb628a3d2d1bf005d
+      with:
+        path: .github/workflows/.versions
+        log-variables: true
+
+    - name: Setup terraform
+      uses: hashicorp/setup-terraform@3d8debd658c92063839bc97da5c2427100420dec # v1.3.2
+      with:
+        terraform_version: ${{ steps.version.outputs.terraform }}
+
+    - name: Authenticate google cloud
+      id: auth
+      uses: google-github-actions/auth@c6c22902f6af237edb96ede5f25a00e864589b2f # v0.4.4
+      with:
+        workload_identity_provider: ${{ inputs.workload_identity_provider }}
+        service_account: ${{ inputs.service_account }}
+
+    - name: Terraform init
+      id: init
+      run: terraform init
+      shell: bash
+      working-directory: ${{ inputs.directory }}

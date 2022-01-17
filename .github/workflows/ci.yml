@@ -1,0 +1,134 @@
+name: Terraform Continuous Integration
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  basic:
+    name: fmt/validate/check
+    strategy:
+      matrix:
+        env: [mintak]
+
+    runs-on: ubuntu-20.04
+    # See. https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#permissions
+    permissions:
+      id-token: write
+      pull-requests: write
+
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      TF_WORKSPACE: ${{ matrix.env }}
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./environments/${{ matrix.env }}
+
+    steps:
+      - name: Checkout code
+        id: checkout
+        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
+
+      - name: setup
+        uses: ./.github/actions/setup
+        with:
+          workload_identity_provider: "projects/917389335203/locations/global/workloadIdentityPools/github/providers/github-provider"
+          service_account: "github-actions@mintak-h83y.iam.gserviceaccount.com"
+          directory: ./environments/${{ matrix.env }}
+
+      - name: Terraform format
+        id: fmt
+        run: terraform fmt
+        working-directory: ./environments/${{ matrix.env }}
+
+      - name: Terraform validate
+        id: validate
+        run: terraform validate
+        working-directory: ./environments/${{ matrix.env }}
+
+      - name: Terraform plan
+        id: plan
+        run: terraform plan -lock=false
+        working-directory: ./environments/${{ matrix.env }}
+
+      - name: Post Validate
+        if: always() && github.event_name == 'pull_request' && (steps.validate.outcome == 'success' || steps.validate.outcome == 'failure')
+        uses: robburger/terraform-pr-commenter@72c6e45eced6641488a6cf3ff104b7b9bda9c66c
+        with:
+          commenter_type: validate
+          commenter_input: ${{ format('{0}{1}', steps.validate.outputs.stdout, steps.validate.outputs.stderr) }}
+          commenter_exitcode: ${{ steps.validate.outputs.exitcode }}
+
+      - name: Post Plan
+        if: always() && github.event_name == 'pull_request' && (steps.plan.outcome == 'success' || steps.plan.outcome == 'failure')
+        uses: robburger/terraform-pr-commenter@72c6e45eced6641488a6cf3ff104b7b9bda9c66c
+        with:
+          commenter_type: plan
+          commenter_input: ${{ format('{0}{1}', steps.plan.outputs.stdout, steps.plan.outputs.stderr) }}
+          commenter_exitcode: ${{ steps.plan.outputs.exitcode }}
+
+  security:
+    name: tfsec / checkov
+    strategy:
+      matrix:
+        env: [mintak]
+
+    runs-on: ubuntu-20.04
+    # See. https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#permissions
+    permissions:
+      id-token: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        id: checkout
+        uses: actions/checkout@v2
+
+      - name: setup
+        id: setup
+        uses: ./.github/actions/setup
+        with:
+          workload_identity_provider: "projects/917389335203/locations/global/workloadIdentityPools/github/providers/github-provider"
+          service_account: "github-actions@mintak-h83y.iam.gserviceaccount.com"
+
+      # - name: Read dotenv filter
+      #   id: read-versions
+      #   uses: falti/dotenv-action@master
+      #   with:
+      #     path: .github/workflows/.versions
+
+      - name: TFLint
+        id: lint
+        uses: reviewdog/action-tflint@fe74d2eb0a4713a048c64dc6b2370d3655508cb7 # v1.14.0
+        with:
+          github_token: ${{ secrets.github_token }}
+          working_directory: ./environments/${{ matrix.env }}
+          tflint_version: v${{ steps.setup.outputs.tflint_version }}
+          reporter: github-pr-review
+          filter_mode: file
+          fail_on_error: true
+
+      - name: TF Security
+        id: sec
+        uses: reviewdog/action-tfsec@d369687c2fd9373b8469e34602a714b24b78b0d3 # v1.13.0
+        with:
+          github_token: ${{ secrets.github_token }}
+          working_directory: ./environments/${{ matrix.env }}
+          tfsec_version: v${{ steps.setup.outputs.tfsec_version }}
+          reporter: github-pr-review
+          filter_mode: file
+          fail_on_error: true
+
+      - name: Run Checkov action
+        id: checkov
+        uses: bridgecrewio/checkov-action@2c1d391f5ddc1df7d7a0970c4e273c208963401b # v12.1158.0
+        with:
+          directory: ./environments/${{ matrix.env }}
+          # skip_check: CKV_AWS_8
+          quiet: true # optional: display only failed checks
+          framework: terraform # optional: run only on a specific infrastructure {cloudformation,terraform,kubernetes,all}
+          log_level: DEBUG
