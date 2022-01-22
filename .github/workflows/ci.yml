@@ -125,7 +125,7 @@ jobs:
 
       - name: Run Checkov action
         id: checkov
-        uses: bridgecrewio/checkov-action@2c1d391f5ddc1df7d7a0970c4e273c208963401b # v12.1158.0
+        uses: bridgecrewio/checkov-action@f0f950eb714af9d9719579eb400e45b18163f672 # v12.1158.0
         with:
           directory: ./environments/${{ matrix.env }}
           # skip_check: CKV_AWS_8
