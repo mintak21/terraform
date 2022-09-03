@@ -114,7 +114,7 @@ jobs:
 
       - name: TF Security
         id: sec
-        uses: reviewdog/action-tfsec@d369687c2fd9373b8469e34602a714b24b78b0d3 # v1.13.0
+        uses: reviewdog/action-tfsec@c33e075b53fed70183e46124801ff934b5c5ff8b # v1.13.0
         with:
           github_token: ${{ secrets.github_token }}
           working_directory: ./environments/${{ matrix.env }}
