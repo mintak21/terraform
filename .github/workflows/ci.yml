@@ -103,7 +103,7 @@ jobs:
 
       - name: TFLint
         id: lint
-        uses: reviewdog/action-tflint@fe74d2eb0a4713a048c64dc6b2370d3655508cb7 # v1.14.0
+        uses: reviewdog/action-tflint@aa45c856f2dec0fbbf5ca56c3e494059a021f88f # v1.17.3
         with:
           github_token: ${{ secrets.github_token }}
           working_directory: ./environments/${{ matrix.env }}
